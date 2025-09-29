@@ -59,7 +59,7 @@ jobs:
           java-version: "17"
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           gradle-home-cache-cleanup: true
 
@@ -78,10 +78,11 @@ jobs:
           echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
           echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> ~/.gradle/gradle.properties
           echo 'android.native.buildOutput=verbose' >> ~/.gradle/gradle.properties
+          echo 'kotlin.jvm.target.validation.mode=warning' >> ~/.gradle/gradle.properties
           cd api
-          ./gradlew publishToMavenLocal
+          ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning
           cd ../service
-          ./gradlew publishToMavenLocal
+          ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning
 
       - name: Build with Gradle
         run: |
