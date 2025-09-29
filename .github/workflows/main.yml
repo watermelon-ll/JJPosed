@@ -41,16 +41,22 @@ jobs:
           fi
 
       - name: Checkout libxposed/api
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: libxposed/api
           path: libxposed/api
 
       - name: Checkout libxposed/service
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: libxposed/service
           path: libxposed/service
+
+      - name: Checkout libxposed/interface
+        uses: actions/checkout@v4
+        with:
+          repository: libxposed/interface
+          path: libxposed/interface
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -84,10 +90,52 @@ jobs:
           echo "org.gradle.java.home=$JAVA_HOME" >> ~/.gradle/gradle.properties
           echo "Build using Java: $JAVA_HOME"
           java -version
+          echo "Building libxposed/api..."
           cd api
-          ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info | head -20
+          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info; then
+            echo "✓ libxposed/api build successful"
+          else
+            echo "✗ libxposed/api build failed"
+            exit 1
+          fi
+          
+          echo "Building libxposed/interface..."
+          cd ../interface
+          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info; then
+            echo "✓ libxposed/interface build successful"
+          else
+            echo "✗ libxposed/interface build failed"
+            exit 1
+          fi
+          
+          echo "Building libxposed/service..."
           cd ../service
-          ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info | head -20
+          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info; then
+            echo "✓ libxposed/service build successful"
+          else
+            echo "✗ libxposed/service build failed"
+            exit 1
+          fi
+
+      - name: Verify dependencies
+        run: |
+          echo "Checking Maven local repository for libxposed dependencies..."
+          ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found"
+          if [ -d ~/.m2/repository/io/github/libxposed/api/100 ]; then
+            echo "✓ libxposed:api:100 found"
+          else
+            echo "✗ libxposed:api:100 missing"
+          fi
+          if [ -d ~/.m2/repository/io/github/libxposed/interface/100 ]; then
+            echo "✓ libxposed:interface:100 found"
+          else
+            echo "✗ libxposed:interface:100 missing"
+          fi
+          if [ -d ~/.m2/repository/io/github/libxposed/service/100 ]; then
+            echo "✓ libxposed:service:100 found"
+          else
+            echo "✗ libxposed:service:100 missing"
+          fi
 
       - name: Build with Gradle
         env:
