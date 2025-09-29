@@ -52,11 +52,6 @@ jobs:
           repository: libxposed/service
           path: libxposed/service
 
-      - name: Checkout libxposed/interface
-        uses: actions/checkout@v4
-        with:
-          repository: libxposed/interface
-          path: libxposed/interface
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -99,15 +94,6 @@ jobs:
             exit 1
           fi
           
-          echo "Building libxposed/interface..."
-          cd ../interface
-          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info; then
-            echo "✓ libxposed/interface build successful"
-          else
-            echo "✗ libxposed/interface build failed"
-            exit 1
-          fi
-          
           echo "Building libxposed/service..."
           cd ../service
           if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info; then
@@ -126,16 +112,13 @@ jobs:
           else
             echo "✗ libxposed:api:100 missing"
           fi
-          if [ -d ~/.m2/repository/io/github/libxposed/interface/100 ]; then
-            echo "✓ libxposed:interface:100 found"
-          else
-            echo "✗ libxposed:interface:100 missing"
-          fi
           if [ -d ~/.m2/repository/io/github/libxposed/service/100 ]; then
             echo "✓ libxposed:service:100 found"
           else
             echo "✗ libxposed:service:100 missing"
           fi
+          echo "All available libxposed artifacts:"
+          find ~/.m2/repository/io/github/libxposed/ -name "*.jar" 2>/dev/null || echo "No JAR files found"
 
       - name: Build with Gradle
         env:
