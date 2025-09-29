@@ -60,9 +60,10 @@ jobs:
           java-version: "17"
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          gradle-home-cache-cleanup: true
+        run: |
+          echo "Gradle will be automatically downloaded by gradlew"
+          java -version
+          ./gradlew --version
 
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -87,7 +88,7 @@ jobs:
           java -version
           echo "Building libxposed/api..."
           cd api
-          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info; then
+          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning -Porg.gradle.java.home=$JAVA_HOME -Dorg.gradle.java.installations.auto-download=false; then
             echo "✓ libxposed/api build successful"
           else
             echo "✗ libxposed/api build failed"
@@ -96,7 +97,7 @@ jobs:
           
           echo "Building libxposed/service..."
           cd ../service
-          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning --info; then
+          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning -Porg.gradle.java.home=$JAVA_HOME -Dorg.gradle.java.installations.auto-download=false; then
             echo "✓ libxposed/service build successful"
           else
             echo "✗ libxposed/service build failed"
@@ -126,7 +127,7 @@ jobs:
         run: |
           echo "Using Java: $JAVA_HOME"
           java -version
-          ./gradlew zipAll -Porg.gradle.java.home=$JAVA_HOME
+          ./gradlew zipAll -Porg.gradle.java.home=$JAVA_HOME -Dorg.gradle.java.installations.auto-download=false
 
       - name: Prepare artifact
         if: success()
