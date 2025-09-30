@@ -244,8 +244,16 @@ jobs:
                 echo "---"
               fi
             done
-            echo "=== All POM and JAR files in libxposed ==="
-            find ~/.m2/repository/io/github/libxposed/ -name "*.pom" -o -name "*.jar" 2>/dev/null || echo "No POM or JAR files found"
+          echo "=== All POM and JAR files in libxposed ==="
+          find ~/.m2/repository/io/github/libxposed/ -name "*.pom" -o -name "*.jar" 2>/dev/null || echo "No POM or JAR files found"
+          
+          echo "=== Checking for main JAR files specifically ==="
+          echo "API main JAR:"
+          ls -la ~/.m2/repository/io/github/libxposed/api/100/api-100.jar 2>/dev/null || echo "✗ api-100.jar missing"
+          echo "Interface main JAR:"
+          ls -la ~/.m2/repository/io/github/libxposed/interface/100/interface-100.jar 2>/dev/null || echo "✗ interface-100.jar missing"
+          echo "Service main JAR:"
+          ls -la ~/.m2/repository/io/github/libxposed/service/100-1.0.0/service-100-1.0.0.jar 2>/dev/null || echo "✗ service-100-1.0.0.jar missing"
             exit 1
           fi
 

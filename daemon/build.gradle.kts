@@ -114,7 +114,7 @@ android.applicationVariants.all {
 }
 
 dependencies {
-    implementation(libs.libxposed.api)
+    implementation("io.github.libxposed:api:100")
     implementation("io.github.libxposed:interface:100")
     implementation("io.github.libxposed:service:100-1.0.0")
     implementation(libs.agp.apksig)
