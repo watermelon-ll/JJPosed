@@ -169,6 +169,16 @@ jobs:
           echo "Checking Maven local repository for libxposed dependencies..."
           ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found"
           
+          echo "=== All libxposed subdirectories ==="
+          for dir in ~/.m2/repository/io/github/libxposed/*/; do
+            if [ -d "$dir" ]; then
+              dirname=$(basename "$dir")
+              echo "Found artifact: $dirname"
+              ls -la "$dir"
+              echo "---"
+            fi
+          done
+          
           if [ -d ~/.m2/repository/io/github/libxposed/api/100 ]; then
             echo "✓ libxposed:api:100 found"
             ls -la ~/.m2/repository/io/github/libxposed/api/100/
@@ -181,6 +191,8 @@ jobs:
             ls -la ~/.m2/repository/io/github/libxposed/service/100/
           else
             echo "✗ libxposed:service:100 missing"
+            echo "Checking for alternative service artifacts:"
+            find ~/.m2/repository/io/github/libxposed/ -name "*service*" -type d 2>/dev/null || echo "No service directories found"
           fi
           
           echo "All available libxposed artifacts:"
@@ -217,6 +229,18 @@ jobs:
             find ~/.m2/repository/ -name "*libxposed*" 2>/dev/null || echo "No libxposed artifacts found anywhere"
             echo "Checking Maven local repository structure:"
             ls -la ~/.m2/repository/io/github/ 2>/dev/null || echo "No io.github artifacts found"
+            echo "=== Detailed libxposed directory structure ==="
+            ls -la ~/.m2/repository/io/github/libxposed/ 2>/dev/null || echo "No libxposed directory found"
+            echo "=== Contents of each libxposed subdirectory ==="
+            for dir in ~/.m2/repository/io/github/libxposed/*/; do
+              if [ -d "$dir" ]; then
+                echo "Directory: $dir"
+                ls -la "$dir"
+                echo "---"
+              fi
+            done
+            echo "=== All POM and JAR files in libxposed ==="
+            find ~/.m2/repository/io/github/libxposed/ -name "*.pom" -o -name "*.jar" 2>/dev/null || echo "No POM or JAR files found"
             exit 1
           fi
 
