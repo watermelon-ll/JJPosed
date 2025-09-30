@@ -105,7 +105,6 @@ jobs:
             -Dorg.gradle.java.installations.auto-download=false \
             --no-build-cache \
             --no-configuration-cache \
-            --init-script= \
             --gradle-user-home=/tmp/gradle-home; then
             echo "✓ libxposed/api build successful"
           else
@@ -121,7 +120,6 @@ jobs:
             -Dorg.gradle.java.installations.auto-download=false \
             --no-build-cache \
             --no-configuration-cache \
-            --init-script= \
             --gradle-user-home=/tmp/gradle-home; then
             echo "✓ libxposed/service build successful"
           else
@@ -161,7 +159,6 @@ jobs:
             -Dorg.gradle.java.installations.auto-download=false \
             --no-build-cache \
             --no-configuration-cache \
-            --init-script= \
             --gradle-user-home=/tmp/gradle-home
 
       - name: Prepare artifact
