@@ -211,6 +211,11 @@ jobs:
           ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found"
           find ~/.m2/repository/io/github/libxposed/ -name "*.pom" -o -name "*.jar" 2>/dev/null || echo "No artifacts found"
           
+          # Clear Gradle dependency cache to avoid stale resolution
+          echo "=== Clearing Gradle dependency cache ==="
+          rm -rf ~/.gradle/caches/modules-2/ || true
+          rm -rf .gradle/configuration-cache/ || true
+          
           # Use default Gradle user home for main build to access Maven local repo
           if ! ./gradlew zipAll \
             -Porg.gradle.java.home=$JAVA_HOME \
