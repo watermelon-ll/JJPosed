@@ -125,9 +125,17 @@ jobs:
           
           echo "Building libxposed/service..."
           cd ../service
+          
+          # Debug: Check project structure
+          echo "=== libxposed/service project structure ==="
+          ls -la
+          echo "=== Checking settings.gradle ==="
+          cat settings.gradle* 2>/dev/null || echo "No settings.gradle found"
+          echo "=== Checking build.gradle files ==="
+          find . -name "build.gradle*" -exec echo "Found build file: {}" \;
+          
           # Patch any Java version configurations in build files
           echo "Patching Java version configurations in libxposed/service..."
-          find . -name "build.gradle*" -exec echo "Found build file: {}" \;
           find . -name "build.gradle*" -exec sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' {} \; || true
           find . -name "build.gradle*" -exec sed -i 's/jvmTarget.*21/jvmTarget = "17"/g' {} \; || true
           find . -name "build.gradle*" -exec sed -i 's/sourceCompatibility.*21/sourceCompatibility = JavaVersion.VERSION_17/g' {} \; || true
@@ -149,6 +157,8 @@ jobs:
             --no-build-cache \
             --no-configuration-cache; then
             echo "✓ libxposed/service build successful"
+            echo "Checking what was published:"
+            find ~/.m2/repository/io/github/libxposed/ -name "*service*" 2>/dev/null || echo "No service artifacts found"
           else
             echo "✗ libxposed/service build failed"
             exit 1
@@ -183,8 +193,14 @@ jobs:
         run: |
           echo "Using Java: $JAVA_HOME"
           java -version
+          
+          # Debug: Check Maven local repository before build
+          echo "=== Maven local repository status before build ==="
+          ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found"
+          find ~/.m2/repository/io/github/libxposed/ -name "*.pom" -o -name "*.jar" 2>/dev/null || echo "No artifacts found"
+          
           # Use default Gradle user home for main build to access Maven local repo
-          ./gradlew zipAll \
+          if ! ./gradlew zipAll \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
             -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
@@ -194,7 +210,15 @@ jobs:
             -DtargetCompatibility=17 \
             -DsourceCompatibility=17 \
             --no-build-cache \
-            --no-configuration-cache
+            --no-configuration-cache; then
+            
+            echo "=== Build failed, debugging Maven repository ==="
+            echo "Checking for libxposed artifacts:"
+            find ~/.m2/repository/ -name "*libxposed*" 2>/dev/null || echo "No libxposed artifacts found anywhere"
+            echo "Checking Maven local repository structure:"
+            ls -la ~/.m2/repository/io/github/ 2>/dev/null || echo "No io.github artifacts found"
+            exit 1
+          fi
 
       - name: Prepare artifact
         if: success()
