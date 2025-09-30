@@ -105,7 +105,11 @@ jobs:
           find . -name "build.gradle*" -exec sed -i 's/jvmTarget.*21/jvmTarget = "17"/g' {} \; || true
           find . -name "build.gradle*" -exec sed -i 's/sourceCompatibility.*21/sourceCompatibility = JavaVersion.VERSION_17/g' {} \; || true
           find . -name "build.gradle*" -exec sed -i 's/targetCompatibility.*21/targetCompatibility = JavaVersion.VERSION_17/g' {} \; || true
-          if ./gradlew build publishToMavenLocal \
+          echo "=== Available Gradle tasks in libxposed/api ==="
+          ./gradlew tasks --all | grep -E "(jar|assemble|build|publish)" || echo "No relevant tasks found"
+          
+          echo "=== Building libxposed/api with detailed output ==="
+          if ./gradlew assemble jar publishToMavenLocal \
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
@@ -116,8 +120,13 @@ jobs:
             -DtargetCompatibility=17 \
             -DsourceCompatibility=17 \
             --no-build-cache \
-            --no-configuration-cache; then
+            --no-configuration-cache \
+            --info; then
             echo "✓ libxposed/api build successful"
+            echo "=== Checking build outputs ==="
+            find . -name "*.jar" -type f | head -10
+            echo "=== Checking what was published to Maven local ==="
+            ls -la ~/.m2/repository/io/github/libxposed/api/100/ || echo "No api artifacts found"
           else
             echo "✗ libxposed/api build failed"
             exit 1
@@ -144,7 +153,11 @@ jobs:
           find . -name "build.gradle*" -exec sed -i 's/targetSdk.*35/targetSdk = 34/g' {} \; || true
           echo "Checking for any remaining Java 21 references:"
           find . -name "build.gradle*" -exec grep -l "21" {} \; || echo "No Java 21 references found"
-          if ./gradlew build publishToMavenLocal \
+          echo "=== Available Gradle tasks in libxposed/service ==="
+          ./gradlew tasks --all | grep -E "(jar|assemble|build|publish)" || echo "No relevant tasks found"
+          
+          echo "=== Building libxposed/service with detailed output ==="
+          if ./gradlew assemble jar publishToMavenLocal \
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
@@ -155,10 +168,14 @@ jobs:
             -DtargetCompatibility=17 \
             -DsourceCompatibility=17 \
             --no-build-cache \
-            --no-configuration-cache; then
+            --no-configuration-cache \
+            --info; then
             echo "✓ libxposed/service build successful"
-            echo "Checking what was published:"
-            find ~/.m2/repository/io/github/libxposed/ -name "*service*" 2>/dev/null || echo "No service artifacts found"
+            echo "=== Checking build outputs ==="
+            find . -name "*.jar" -type f | head -10
+            echo "=== Checking what was published to Maven local ==="
+            ls -la ~/.m2/repository/io/github/libxposed/service/ || echo "No service artifacts found"
+            ls -la ~/.m2/repository/io/github/libxposed/interface/ || echo "No interface artifacts found"
           else
             echo "✗ libxposed/service build failed"
             exit 1
