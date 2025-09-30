@@ -116,8 +116,7 @@ jobs:
             -DtargetCompatibility=17 \
             -DsourceCompatibility=17 \
             --no-build-cache \
-            --no-configuration-cache \
-; then
+            --no-configuration-cache; then
             echo "✓ libxposed/api build successful"
           else
             echo "✗ libxposed/api build failed"
@@ -148,8 +147,7 @@ jobs:
             -DtargetCompatibility=17 \
             -DsourceCompatibility=17 \
             --no-build-cache \
-            --no-configuration-cache \
-; then
+            --no-configuration-cache; then
             echo "✓ libxposed/service build successful"
           else
             echo "✗ libxposed/service build failed"
