@@ -63,7 +63,14 @@ jobs:
         run: |
           echo "Gradle will be automatically downloaded by gradlew"
           java -version
-          ./gradlew --version
+          # Clean up any existing Gradle state that might interfere
+          rm -rf ~/.gradle/init.d/ || true
+          rm -rf /home/runner/.gradle/init.d/ || true
+          # Disable Gradle init scripts that might interfere
+          export GRADLE_OPTS="-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
+          export GRADLE_USER_HOME=/tmp/gradle-home
+          mkdir -p /tmp/gradle-home
+          ./gradlew --version --no-build-cache --no-configuration-cache --gradle-user-home=/tmp/gradle-home
 
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -77,18 +84,29 @@ jobs:
         working-directory: libxposed
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
+          GRADLE_USER_HOME: /tmp/gradle-home
+          GRADLE_OPTS: "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
         run: |
-          echo 'org.gradle.caching=true' >> ~/.gradle/gradle.properties
-          echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
-          echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> ~/.gradle/gradle.properties
-          echo 'android.native.buildOutput=verbose' >> ~/.gradle/gradle.properties
-          echo 'kotlin.jvm.target.validation.mode=warning' >> ~/.gradle/gradle.properties
-          echo "org.gradle.java.home=$JAVA_HOME" >> ~/.gradle/gradle.properties
+          # Create clean gradle properties for libxposed builds
+          mkdir -p /tmp/gradle-home
+          echo 'org.gradle.caching=false' > /tmp/gradle-home/gradle.properties
+          echo 'org.gradle.parallel=true' >> /tmp/gradle-home/gradle.properties
+          echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> /tmp/gradle-home/gradle.properties
+          echo 'android.native.buildOutput=verbose' >> /tmp/gradle-home/gradle.properties
+          echo 'kotlin.jvm.target.validation.mode=warning' >> /tmp/gradle-home/gradle.properties
+          echo "org.gradle.java.home=$JAVA_HOME" >> /tmp/gradle-home/gradle.properties
           echo "Build using Java: $JAVA_HOME"
           java -version
           echo "Building libxposed/api..."
           cd api
-          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning -Porg.gradle.java.home=$JAVA_HOME -Dorg.gradle.java.installations.auto-download=false; then
+          if ./gradlew publishToMavenLocal \
+            -Pkotlin.jvm.target.validation.mode=warning \
+            -Porg.gradle.java.home=$JAVA_HOME \
+            -Dorg.gradle.java.installations.auto-download=false \
+            --no-build-cache \
+            --no-configuration-cache \
+            --init-script= \
+            --gradle-user-home=/tmp/gradle-home; then
             echo "✓ libxposed/api build successful"
           else
             echo "✗ libxposed/api build failed"
@@ -97,7 +115,14 @@ jobs:
           
           echo "Building libxposed/service..."
           cd ../service
-          if ./gradlew publishToMavenLocal -Pkotlin.jvm.target.validation.mode=warning -Porg.gradle.java.home=$JAVA_HOME -Dorg.gradle.java.installations.auto-download=false; then
+          if ./gradlew publishToMavenLocal \
+            -Pkotlin.jvm.target.validation.mode=warning \
+            -Porg.gradle.java.home=$JAVA_HOME \
+            -Dorg.gradle.java.installations.auto-download=false \
+            --no-build-cache \
+            --no-configuration-cache \
+            --init-script= \
+            --gradle-user-home=/tmp/gradle-home; then
             echo "✓ libxposed/service build successful"
           else
             echo "✗ libxposed/service build failed"
@@ -124,10 +149,20 @@ jobs:
       - name: Build with Gradle
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
+          GRADLE_USER_HOME: /tmp/gradle-home
+          GRADLE_OPTS: "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
         run: |
           echo "Using Java: $JAVA_HOME"
           java -version
-          ./gradlew zipAll -Porg.gradle.java.home=$JAVA_HOME -Dorg.gradle.java.installations.auto-download=false
+          # Ensure clean Gradle environment for main build
+          mkdir -p /tmp/gradle-home
+          ./gradlew zipAll \
+            -Porg.gradle.java.home=$JAVA_HOME \
+            -Dorg.gradle.java.installations.auto-download=false \
+            --no-build-cache \
+            --no-configuration-cache \
+            --init-script= \
+            --gradle-user-home=/tmp/gradle-home
 
       - name: Prepare artifact
         if: success()
