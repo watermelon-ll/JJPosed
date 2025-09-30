@@ -103,6 +103,12 @@ jobs:
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
+            -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
+            -Dorg.gradle.java.toolchain.version=17 \
+            -Dkotlin.jvm.target.validation.mode=warning \
+            -Djava.version=17 \
+            -DtargetCompatibility=17 \
+            -DsourceCompatibility=17 \
             --no-build-cache \
             --no-configuration-cache \
             --gradle-user-home=/tmp/gradle-home; then
@@ -118,6 +124,12 @@ jobs:
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
+            -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
+            -Dorg.gradle.java.toolchain.version=17 \
+            -Dkotlin.jvm.target.validation.mode=warning \
+            -Djava.version=17 \
+            -DtargetCompatibility=17 \
+            -DsourceCompatibility=17 \
             --no-build-cache \
             --no-configuration-cache \
             --gradle-user-home=/tmp/gradle-home; then
@@ -157,6 +169,12 @@ jobs:
           ./gradlew zipAll \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
+            -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
+            -Dorg.gradle.java.toolchain.version=17 \
+            -Dkotlin.jvm.target.validation.mode=warning \
+            -Djava.version=17 \
+            -DtargetCompatibility=17 \
+            -DsourceCompatibility=17 \
             --no-build-cache \
             --no-configuration-cache \
             --gradle-user-home=/tmp/gradle-home
