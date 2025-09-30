@@ -99,6 +99,13 @@ jobs:
           java -version
           echo "Building libxposed/api..."
           cd api
+          # Patch any Java version configurations in build files
+          echo "Patching Java version configurations in libxposed/api..."
+          find . -name "build.gradle*" -exec echo "Found build file: {}" \;
+          find . -name "build.gradle*" -exec sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/jvmTarget.*21/jvmTarget = "17"/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/sourceCompatibility.*21/sourceCompatibility = JavaVersion.VERSION_17/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/targetCompatibility.*21/targetCompatibility = JavaVersion.VERSION_17/g' {} \; || true
           if ./gradlew publishToMavenLocal \
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
@@ -120,6 +127,17 @@ jobs:
           
           echo "Building libxposed/service..."
           cd ../service
+          # Patch any Java version configurations in build files
+          echo "Patching Java version configurations in libxposed/service..."
+          find . -name "build.gradle*" -exec echo "Found build file: {}" \;
+          find . -name "build.gradle*" -exec sed -i 's/JavaVersion\.VERSION_21/JavaVersion.VERSION_17/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/jvmTarget.*21/jvmTarget = "17"/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/sourceCompatibility.*21/sourceCompatibility = JavaVersion.VERSION_17/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/targetCompatibility.*21/targetCompatibility = JavaVersion.VERSION_17/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/compileSdk.*35/compileSdk = 34/g' {} \; || true
+          find . -name "build.gradle*" -exec sed -i 's/targetSdk.*35/targetSdk = 34/g' {} \; || true
+          echo "Checking for any remaining Java 21 references:"
+          find . -name "build.gradle*" -exec grep -l "21" {} \; || echo "No Java 21 references found"
           if ./gradlew publishToMavenLocal \
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
