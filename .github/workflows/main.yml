@@ -84,17 +84,16 @@ jobs:
         working-directory: libxposed
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
-          GRADLE_USER_HOME: /tmp/gradle-home
           GRADLE_OPTS: "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
         run: |
-          # Create clean gradle properties for libxposed builds
-          mkdir -p /tmp/gradle-home
-          echo 'org.gradle.caching=false' > /tmp/gradle-home/gradle.properties
-          echo 'org.gradle.parallel=true' >> /tmp/gradle-home/gradle.properties
-          echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> /tmp/gradle-home/gradle.properties
-          echo 'android.native.buildOutput=verbose' >> /tmp/gradle-home/gradle.properties
-          echo 'kotlin.jvm.target.validation.mode=warning' >> /tmp/gradle-home/gradle.properties
-          echo "org.gradle.java.home=$JAVA_HOME" >> /tmp/gradle-home/gradle.properties
+          # Create clean gradle properties for libxposed builds in default location
+          mkdir -p ~/.gradle
+          echo 'org.gradle.caching=false' > ~/.gradle/gradle.properties
+          echo 'org.gradle.parallel=true' >> ~/.gradle/gradle.properties
+          echo 'org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC' >> ~/.gradle/gradle.properties
+          echo 'android.native.buildOutput=verbose' >> ~/.gradle/gradle.properties
+          echo 'kotlin.jvm.target.validation.mode=warning' >> ~/.gradle/gradle.properties
+          echo "org.gradle.java.home=$JAVA_HOME" >> ~/.gradle/gradle.properties
           echo "Build using Java: $JAVA_HOME"
           java -version
           echo "Building libxposed/api..."
@@ -118,7 +117,7 @@ jobs:
             -DsourceCompatibility=17 \
             --no-build-cache \
             --no-configuration-cache \
-            --gradle-user-home=/tmp/gradle-home; then
+; then
             echo "✓ libxposed/api build successful"
           else
             echo "✗ libxposed/api build failed"
@@ -150,7 +149,7 @@ jobs:
             -DsourceCompatibility=17 \
             --no-build-cache \
             --no-configuration-cache \
-            --gradle-user-home=/tmp/gradle-home; then
+; then
             echo "✓ libxposed/service build successful"
           else
             echo "✗ libxposed/service build failed"
@@ -160,35 +159,24 @@ jobs:
       - name: Verify dependencies
         run: |
           echo "Checking Maven local repository for libxposed dependencies..."
-          echo "Checking both ~/.m2 and /tmp/gradle-home/.m2 locations..."
+          ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found"
           
-          # Check default Maven local repo
-          ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found in ~/.m2"
-          
-          # Check custom Gradle home Maven repo
-          ls -la /tmp/gradle-home/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found in /tmp/gradle-home/.m2"
-          
-          # Copy artifacts from custom location to default location if needed
-          if [ -d /tmp/gradle-home/.m2/repository/io/github/libxposed ]; then
-            echo "Copying libxposed artifacts from custom Gradle home to default Maven local..."
-            mkdir -p ~/.m2/repository/io/github/
-            cp -r /tmp/gradle-home/.m2/repository/io/github/libxposed ~/.m2/repository/io/github/ || true
-          fi
-          
-          # Verify final state
           if [ -d ~/.m2/repository/io/github/libxposed/api/100 ]; then
             echo "✓ libxposed:api:100 found"
+            ls -la ~/.m2/repository/io/github/libxposed/api/100/
           else
             echo "✗ libxposed:api:100 missing"
           fi
+          
           if [ -d ~/.m2/repository/io/github/libxposed/service/100 ]; then
             echo "✓ libxposed:service:100 found"
+            ls -la ~/.m2/repository/io/github/libxposed/service/100/
           else
             echo "✗ libxposed:service:100 missing"
           fi
           
           echo "All available libxposed artifacts:"
-          find ~/.m2/repository/io/github/libxposed/ -name "*.jar" 2>/dev/null || echo "No JAR files found"
+          find ~/.m2/repository/io/github/libxposed/ -name "*.jar" -o -name "*.pom" 2>/dev/null || echo "No artifacts found"
 
       - name: Build with Gradle
         env:
