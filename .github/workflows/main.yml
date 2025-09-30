@@ -160,7 +160,22 @@ jobs:
       - name: Verify dependencies
         run: |
           echo "Checking Maven local repository for libxposed dependencies..."
-          ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found"
+          echo "Checking both ~/.m2 and /tmp/gradle-home/.m2 locations..."
+          
+          # Check default Maven local repo
+          ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found in ~/.m2"
+          
+          # Check custom Gradle home Maven repo
+          ls -la /tmp/gradle-home/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found in /tmp/gradle-home/.m2"
+          
+          # Copy artifacts from custom location to default location if needed
+          if [ -d /tmp/gradle-home/.m2/repository/io/github/libxposed ]; then
+            echo "Copying libxposed artifacts from custom Gradle home to default Maven local..."
+            mkdir -p ~/.m2/repository/io/github/
+            cp -r /tmp/gradle-home/.m2/repository/io/github/libxposed ~/.m2/repository/io/github/ || true
+          fi
+          
+          # Verify final state
           if [ -d ~/.m2/repository/io/github/libxposed/api/100 ]; then
             echo "✓ libxposed:api:100 found"
           else
@@ -171,19 +186,18 @@ jobs:
           else
             echo "✗ libxposed:service:100 missing"
           fi
+          
           echo "All available libxposed artifacts:"
           find ~/.m2/repository/io/github/libxposed/ -name "*.jar" 2>/dev/null || echo "No JAR files found"
 
       - name: Build with Gradle
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
-          GRADLE_USER_HOME: /tmp/gradle-home
           GRADLE_OPTS: "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
         run: |
           echo "Using Java: $JAVA_HOME"
           java -version
-          # Ensure clean Gradle environment for main build
-          mkdir -p /tmp/gradle-home
+          # Use default Gradle user home for main build to access Maven local repo
           ./gradlew zipAll \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
@@ -194,8 +208,7 @@ jobs:
             -DtargetCompatibility=17 \
             -DsourceCompatibility=17 \
             --no-build-cache \
-            --no-configuration-cache \
-            --gradle-user-home=/tmp/gradle-home
+            --no-configuration-cache
 
       - name: Prepare artifact
         if: success()
