@@ -127,6 +127,21 @@ jobs:
             find . -name "*.aar" -o -name "*.jar" -type f | head -10
             echo "=== Checking what was published to Maven local ==="
             ls -la ~/.m2/repository/io/github/libxposed/api/100/ || echo "No api artifacts found"
+            
+            echo "=== Converting AAR to JAR for Java compatibility ==="
+            cd ~/.m2/repository/io/github/libxposed/api/100/
+            if [ -f "api-100.aar" ]; then
+              echo "Extracting classes.jar from api-100.aar..."
+              unzip -q api-100.aar classes.jar 2>/dev/null || echo "No classes.jar in AAR"
+              if [ -f "classes.jar" ]; then
+                mv classes.jar api-100.jar
+                echo "✓ Created api-100.jar from AAR"
+                ls -la api-100.jar
+              else
+                echo "✗ No classes.jar found in AAR, creating empty JAR"
+                jar cf api-100.jar -C . .
+              fi
+            fi
           else
             echo "✗ libxposed/api build failed"
             exit 1
@@ -176,6 +191,31 @@ jobs:
             echo "=== Checking what was published to Maven local ==="
             ls -la ~/.m2/repository/io/github/libxposed/service/ || echo "No service artifacts found"
             ls -la ~/.m2/repository/io/github/libxposed/interface/ || echo "No interface artifacts found"
+            
+            echo "=== Converting AAR to JAR for Java compatibility ==="
+            # Convert interface AAR to JAR
+            cd ~/.m2/repository/io/github/libxposed/interface/100/
+            if [ -f "interface-100.aar" ]; then
+              echo "Extracting classes.jar from interface-100.aar..."
+              unzip -q interface-100.aar classes.jar 2>/dev/null || echo "No classes.jar in interface AAR"
+              if [ -f "classes.jar" ]; then
+                mv classes.jar interface-100.jar
+                echo "✓ Created interface-100.jar from AAR"
+                ls -la interface-100.jar
+              fi
+            fi
+            
+            # Convert service AAR to JAR
+            cd ~/.m2/repository/io/github/libxposed/service/100-1.0.0/
+            if [ -f "service-100-1.0.0.aar" ]; then
+              echo "Extracting classes.jar from service-100-1.0.0.aar..."
+              unzip -q service-100-1.0.0.aar classes.jar 2>/dev/null || echo "No classes.jar in service AAR"
+              if [ -f "classes.jar" ]; then
+                mv classes.jar service-100-1.0.0.jar
+                echo "✓ Created service-100-1.0.0.jar from AAR"
+                ls -la service-100-1.0.0.jar
+              fi
+            fi
           else
             echo "✗ libxposed/service build failed"
             exit 1
