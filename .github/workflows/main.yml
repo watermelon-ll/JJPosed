@@ -274,12 +274,13 @@ jobs:
           ls -la ~/.m2/repository/io/github/libxposed/ || echo "No libxposed artifacts found"
           find ~/.m2/repository/io/github/libxposed/ -name "*.pom" -o -name "*.jar" 2>/dev/null || echo "No artifacts found"
           
-          # Clear Gradle dependency cache to avoid stale resolution
-          echo "=== Clearing Gradle dependency cache ==="
-          rm -rf ~/.gradle/caches/modules-2/ || true
-          rm -rf .gradle/configuration-cache/ || true
+          # Clear ALL Gradle caches to avoid stale compilation results
+          echo "=== Clearing ALL Gradle caches ==="
+          rm -rf ~/.gradle/caches/ || true
+          rm -rf .gradle/ || true
+          echo "✓ Cleared all Gradle caches"
           
-          # Fix libxposed API usage in core module
+          # Fix libxposed API usage in core module BEFORE any compilation
           echo "=== Fixing libxposed API usage ==="
           echo "Before fixes - checking for problematic imports:"
           grep -r "import io\.github\.libxposed\.api\.annotations" core/src/main/java/ 2>/dev/null | wc -l || echo "0"
@@ -304,6 +305,21 @@ jobs:
           else
             echo "✓ No annotations found"
           fi
+          
+          # Pre-compile Core module to ensure it works before full build
+          echo "=== Pre-compiling Core module ==="
+          ./gradlew :core:compileDebugJavaWithJavac \
+            -Porg.gradle.java.home=$JAVA_HOME \
+            -Dorg.gradle.java.installations.auto-download=false \
+            -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
+            -Dorg.gradle.java.toolchain.version=17 \
+            -Dkotlin.jvm.target.validation.mode=warning \
+            -Djava.version=17 \
+            -DtargetCompatibility=17 \
+            -DsourceCompatibility=17 \
+            --no-build-cache \
+            --no-configuration-cache || (echo "✗ Core pre-compilation failed" && exit 1)
+          echo "✓ Core module pre-compilation successful"
           
           # Use default Gradle user home for main build to access Maven local repo
           if ! ./gradlew zipAll \
