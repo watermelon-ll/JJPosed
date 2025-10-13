@@ -297,18 +297,16 @@ jobs:
             echo "Checking for libxposed artifacts:"
             find ~/.m2/repository/ -name "*libxposed*" 2>/dev/null || echo "No libxposed artifacts found anywhere"
             
-            echo "=== Checking if core module actually compiled successfully ==="
+            echo "=== Core module compilation status ==="
             if [ -d "/home/runner/work/JJPosed/JJPosed/core/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes" ]; then
-              echo "✓ Core module classes directory exists"
-              echo "Checking compiled classes:"
-              find /home/runner/work/JJPosed/JJPosed/core/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes -name "*.class" | head -10 || echo "No classes found"
-              echo "Checking for hooker classes specifically:"
-              find /home/runner/work/JJPosed/JJPosed/core/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes -name "*Hooker*.class" || echo "No hooker classes found"
-            else
-              echo "✗ Core module classes directory missing"
-              echo "=== Attempting to get detailed compilation errors ==="
-              echo "Trying to compile core module specifically with detailed output..."
-              ./gradlew :core:compileDebugJavaWithJavac \
+              echo "✅ Core module compiled successfully!"
+              echo "Hooker classes found:"
+              find /home/runner/work/JJPosed/JJPosed/core/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes -name "*Hooker*.class" | wc -l
+              
+              echo "=== Identifying actual build failure ==="
+              echo "Since Core module is successful, checking what actually failed..."
+              echo "Re-running build with more focused error output:"
+              ./gradlew zipAll \
                 -Porg.gradle.java.home=$JAVA_HOME \
                 -Dorg.gradle.java.installations.auto-download=false \
                 -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
@@ -319,8 +317,9 @@ jobs:
                 -DsourceCompatibility=17 \
                 --no-build-cache \
                 --no-configuration-cache \
-                --stacktrace \
-                --info || echo "Core compilation failed with detailed output above"
+                --continue || echo "Build failed - see specific task failures above"
+            else
+              echo "✗ Core module classes directory missing - unexpected!"
             fi
             echo "Checking Maven local repository structure:"
             ls -la ~/.m2/repository/io/github/ 2>/dev/null || echo "No io.github artifacts found"
