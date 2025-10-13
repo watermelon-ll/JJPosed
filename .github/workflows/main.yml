@@ -106,10 +106,10 @@ jobs:
           find . -name "build.gradle*" -exec sed -i 's/sourceCompatibility.*21/sourceCompatibility = JavaVersion.VERSION_17/g' {} \; || true
           find . -name "build.gradle*" -exec sed -i 's/targetCompatibility.*21/targetCompatibility = JavaVersion.VERSION_17/g' {} \; || true
           echo "=== Available Gradle tasks in libxposed/api ==="
-          ./gradlew tasks --all | grep -E "(jar|assemble|build|publish)" || echo "No relevant tasks found"
+          ./gradlew tasks --all | grep -E "(aar|assemble|build|publish)" || echo "No relevant tasks found"
           
           echo "=== Building libxposed/api with detailed output ==="
-          if ./gradlew assemble jar publishToMavenLocal \
+          if ./gradlew assemble publishToMavenLocal \
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
@@ -124,7 +124,7 @@ jobs:
             --info; then
             echo "✓ libxposed/api build successful"
             echo "=== Checking build outputs ==="
-            find . -name "*.jar" -type f | head -10
+            find . -name "*.aar" -o -name "*.jar" -type f | head -10
             echo "=== Checking what was published to Maven local ==="
             ls -la ~/.m2/repository/io/github/libxposed/api/100/ || echo "No api artifacts found"
           else
@@ -154,10 +154,10 @@ jobs:
           echo "Checking for any remaining Java 21 references:"
           find . -name "build.gradle*" -exec grep -l "21" {} \; || echo "No Java 21 references found"
           echo "=== Available Gradle tasks in libxposed/service ==="
-          ./gradlew tasks --all | grep -E "(jar|assemble|build|publish)" || echo "No relevant tasks found"
+          ./gradlew tasks --all | grep -E "(aar|assemble|build|publish)" || echo "No relevant tasks found"
           
           echo "=== Building libxposed/service with detailed output ==="
-          if ./gradlew assemble jar publishToMavenLocal \
+          if ./gradlew assemble publishToMavenLocal \
             -Pkotlin.jvm.target.validation.mode=warning \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
@@ -172,7 +172,7 @@ jobs:
             --info; then
             echo "✓ libxposed/service build successful"
             echo "=== Checking build outputs ==="
-            find . -name "*.jar" -type f | head -10
+            find . -name "*.aar" -o -name "*.jar" -type f | head -10
             echo "=== Checking what was published to Maven local ==="
             ls -la ~/.m2/repository/io/github/libxposed/service/ || echo "No service artifacts found"
             ls -la ~/.m2/repository/io/github/libxposed/interface/ || echo "No interface artifacts found"
