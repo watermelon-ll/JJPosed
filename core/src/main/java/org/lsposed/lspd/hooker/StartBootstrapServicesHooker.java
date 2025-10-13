@@ -32,13 +32,9 @@ import de.robv.android.xposed.XposedInit;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModuleInterface;
-import io.github.libxposed.api.annotations.BeforeInvocation;
-import io.github.libxposed.api.annotations.XposedHooker;
 
-@XposedHooker
 public class StartBootstrapServicesHooker implements XposedInterface.Hooker {
 
-    @BeforeInvocation
     public static void beforeHookedMethod() {
         logD("SystemServer#startBootstrapServices() starts");
 

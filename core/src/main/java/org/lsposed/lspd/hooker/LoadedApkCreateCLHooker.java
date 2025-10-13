@@ -51,11 +51,7 @@ import de.robv.android.xposed.XposedInit;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import io.github.libxposed.api.XposedInterface;
 import io.github.libxposed.api.XposedModuleInterface;
-import io.github.libxposed.api.annotations.AfterInvocation;
-import io.github.libxposed.api.annotations.XposedHooker;
-
 @SuppressLint("BlockedPrivateApi")
-@XposedHooker
 public class LoadedApkCreateCLHooker implements XposedInterface.Hooker {
     private final static Field defaultClassLoaderField;
 
@@ -77,7 +73,6 @@ public class LoadedApkCreateCLHooker implements XposedInterface.Hooker {
         loadedApks.add(loadedApk);
     }
 
-    @AfterInvocation
     public static void afterHookedMethod(XposedInterface.AfterHookCallback callback) {
         LoadedApk loadedApk = (LoadedApk) callback.getThisObject();
 

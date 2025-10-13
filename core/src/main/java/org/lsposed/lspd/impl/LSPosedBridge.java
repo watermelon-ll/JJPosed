@@ -13,9 +13,6 @@ import java.lang.reflect.Modifier;
 
 import de.robv.android.xposed.XposedBridge;
 import io.github.libxposed.api.XposedInterface;
-import io.github.libxposed.api.annotations.AfterInvocation;
-import io.github.libxposed.api.annotations.BeforeInvocation;
-import io.github.libxposed.api.annotations.XposedHooker;
 import io.github.libxposed.api.errors.HookFailedError;
 
 public class LSPosedBridge {
@@ -220,7 +217,6 @@ public class LSPosedBridge {
         } else if (hooker == null) {
             throw new IllegalArgumentException("hooker should not be null!");
         } else if (hooker.getAnnotation(XposedHooker.class) == null) {
-            throw new IllegalArgumentException("Hooker should be annotated with @XposedHooker");
         }
 
         Method beforeInvocation = null, afterInvocation = null;
@@ -228,7 +224,6 @@ public class LSPosedBridge {
         for (var method : hooker.getDeclaredMethods()) {
             if (method.getAnnotation(BeforeInvocation.class) != null) {
                 if (beforeInvocation != null) {
-                    throw new IllegalArgumentException("More than one method annotated with @BeforeInvocation");
                 }
                 boolean valid = (method.getModifiers() & modifiers) == modifiers;
                 var params = method.getParameterTypes();
@@ -244,7 +239,6 @@ public class LSPosedBridge {
             }
             if (method.getAnnotation(AfterInvocation.class) != null) {
                 if (afterInvocation != null) {
-                    throw new IllegalArgumentException("More than one method annotated with @AfterInvocation");
                 }
                 boolean valid = (method.getModifiers() & modifiers) == modifiers;
                 valid &= method.getReturnType().equals(void.class);
@@ -261,7 +255,6 @@ public class LSPosedBridge {
             }
         }
         if (beforeInvocation == null && afterInvocation == null) {
-            throw new IllegalArgumentException("No method annotated with @BeforeInvocation or @AfterInvocation");
         }
         try {
             if (beforeInvocation == null) {
