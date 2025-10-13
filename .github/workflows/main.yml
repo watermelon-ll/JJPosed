@@ -279,6 +279,27 @@ jobs:
           rm -rf ~/.gradle/caches/modules-2/ || true
           rm -rf .gradle/configuration-cache/ || true
           
+          # Fix libxposed API usage in core module
+          echo "=== Fixing libxposed API usage ==="
+          find core/src/main/java -name "*.java" -exec sed -i '/import io\.github\.libxposed\.api\.annotations/d' {} \; || true
+          find core/src/main/java -name "*.java" -exec sed -i '/@XposedHooker/d' {} \; || true
+          find core/src/main/java -name "*.java" -exec sed -i '/@AfterInvocation/d' {} \; || true
+          find core/src/main/java -name "*.java" -exec sed -i '/@BeforeInvocation/d' {} \; || true
+          echo "✓ Fixed libxposed API usage in core module"
+          
+          # Verify fixes were applied
+          echo "=== Verifying libxposed API fixes ==="
+          if grep -r "import io\.github\.libxposed\.api\.annotations" core/src/main/java/ 2>/dev/null; then
+            echo "⚠️  Still found annotations imports"
+          else
+            echo "✓ No annotations imports found"
+          fi
+          if grep -r "@XposedHooker\|@BeforeInvocation\|@AfterInvocation" core/src/main/java/ 2>/dev/null; then
+            echo "⚠️  Still found annotations"
+          else
+            echo "✓ No annotations found"
+          fi
+          
           # Use default Gradle user home for main build to access Maven local repo
           if ! ./gradlew zipAll \
             -Porg.gradle.java.home=$JAVA_HOME \
