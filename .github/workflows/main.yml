@@ -281,6 +281,11 @@ jobs:
           
           # Fix libxposed API usage in core module
           echo "=== Fixing libxposed API usage ==="
+          echo "Before fixes - checking for problematic imports:"
+          grep -r "import io\.github\.libxposed\.api\.annotations" core/src/main/java/ 2>/dev/null | wc -l || echo "0"
+          grep -r "@XposedHooker\|@BeforeInvocation\|@AfterInvocation" core/src/main/java/ 2>/dev/null | wc -l || echo "0"
+          
+          echo "Applying fixes..."
           find core/src/main/java -name "*.java" -exec sed -i '/import io\.github\.libxposed\.api\.annotations/d' {} \; || true
           find core/src/main/java -name "*.java" -exec sed -i '/@XposedHooker/d' {} \; || true
           find core/src/main/java -name "*.java" -exec sed -i '/@AfterInvocation/d' {} \; || true
@@ -324,10 +329,14 @@ jobs:
               echo "Hooker classes found:"
               find /home/runner/work/JJPosed/JJPosed/core/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes -name "*Hooker*.class" | wc -l
               
-              echo "=== Identifying actual build failure ==="
-              echo "Since Core module is successful, checking what actually failed..."
-              echo "Re-running build with more focused error output:"
-              ./gradlew zipAll \
+              echo "=== Core module compiled successfully! ==="
+              echo "Continuing with full build..."
+            else
+              echo "✗ Core module compilation failed - getting detailed errors..."
+              
+              echo "=== Getting specific Core compilation errors ==="
+              echo "Compiling Core Debug:"
+              ./gradlew :core:compileDebugJavaWithJavac \
                 -Porg.gradle.java.home=$JAVA_HOME \
                 -Dorg.gradle.java.installations.auto-download=false \
                 -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
@@ -338,9 +347,21 @@ jobs:
                 -DsourceCompatibility=17 \
                 --no-build-cache \
                 --no-configuration-cache \
-                --continue || echo "Build failed - see specific task failures above"
-            else
-              echo "✗ Core module classes directory missing - unexpected!"
+                --stacktrace || echo "Core Debug compilation failed"
+                
+              echo "=== Compiling Core Release: ==="
+              ./gradlew :core:compileReleaseJavaWithJavac \
+                -Porg.gradle.java.home=$JAVA_HOME \
+                -Dorg.gradle.java.installations.auto-download=false \
+                -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
+                -Dorg.gradle.java.toolchain.version=17 \
+                -Dkotlin.jvm.target.validation.mode=warning \
+                -Djava.version=17 \
+                -DtargetCompatibility=17 \
+                -DsourceCompatibility=17 \
+                --no-build-cache \
+                --no-configuration-cache \
+                --stacktrace || echo "Core Release compilation failed"
             fi
             echo "Checking Maven local repository structure:"
             ls -la ~/.m2/repository/io/github/ 2>/dev/null || echo "No io.github artifacts found"
