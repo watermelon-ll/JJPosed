@@ -244,7 +244,8 @@ jobs:
             -DtargetCompatibility=17 \
             -DsourceCompatibility=17 \
             --no-build-cache \
-            --no-configuration-cache; then
+            --no-configuration-cache \
+            --info; then
             
             echo "=== Build failed, debugging Maven repository ==="
             echo "Checking for libxposed artifacts:"
@@ -264,13 +265,16 @@ jobs:
           echo "=== All POM and JAR files in libxposed ==="
           find ~/.m2/repository/io/github/libxposed/ -name "*.pom" -o -name "*.jar" 2>/dev/null || echo "No POM or JAR files found"
           
-          echo "=== Checking for main JAR files specifically ==="
-          echo "API main JAR:"
-          ls -la ~/.m2/repository/io/github/libxposed/api/100/api-100.jar 2>/dev/null || echo "✗ api-100.jar missing"
-          echo "Interface main JAR:"
-          ls -la ~/.m2/repository/io/github/libxposed/interface/100/interface-100.jar 2>/dev/null || echo "✗ interface-100.jar missing"
-          echo "Service main JAR:"
-          ls -la ~/.m2/repository/io/github/libxposed/service/100-1.0.0/service-100-1.0.0.jar 2>/dev/null || echo "✗ service-100-1.0.0.jar missing"
+          echo "=== Checking for main JAR/AAR files specifically ==="
+          echo "API artifacts (version 100):"
+          ls -la ~/.m2/repository/io/github/libxposed/api/100/ 2>/dev/null || echo "✗ api/100 directory missing"
+          echo "Interface artifacts (version 100):"
+          ls -la ~/.m2/repository/io/github/libxposed/interface/100/ 2>/dev/null || echo "✗ interface/100 directory missing"
+          echo "Service artifacts (all versions):"
+          ls -la ~/.m2/repository/io/github/libxposed/service/*/  2>/dev/null || echo "✗ service versions missing"
+          
+          echo "=== Looking for any JAR or AAR files ==="
+          find ~/.m2/repository/io/github/libxposed/ -name "*.jar" -o -name "*.aar" 2>/dev/null | head -20 || echo "No JAR/AAR files found"
             exit 1
           fi
 
