@@ -216,13 +216,12 @@ public class LSPosedBridge {
             throw new IllegalArgumentException("Cannot hook Method.invoke");
         } else if (hooker == null) {
             throw new IllegalArgumentException("hooker should not be null!");
-        } else if (hooker.getAnnotation(XposedHooker.class) == null) {
         }
 
         Method beforeInvocation = null, afterInvocation = null;
         var modifiers = Modifier.PUBLIC | Modifier.STATIC;
         for (var method : hooker.getDeclaredMethods()) {
-            if (method.getAnnotation(BeforeInvocation.class) != null) {
+            if (method.getName().equals("beforeHookedMethod")) {
                 if (beforeInvocation != null) {
                 }
                 boolean valid = (method.getModifiers() & modifiers) == modifiers;
@@ -237,7 +236,7 @@ public class LSPosedBridge {
                 }
                 beforeInvocation = method;
             }
-            if (method.getAnnotation(AfterInvocation.class) != null) {
+            if (method.getName().equals("afterHookedMethod")) {
                 if (afterInvocation != null) {
                 }
                 boolean valid = (method.getModifiers() & modifiers) == modifiers;

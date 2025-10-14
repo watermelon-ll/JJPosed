@@ -277,6 +277,11 @@ public class LSPosedContext implements XposedInterface {
     }
 
     @Override
+    public <T> void invokeSpecial(@NonNull Constructor<T> constructor, @NonNull T thisObject, Object... args) throws InvocationTargetException, IllegalArgumentException, IllegalAccessException {
+        HookBridge.invokeSpecialMethod(constructor, getExecutableShorty(constructor), constructor.getDeclaringClass(), thisObject, args);
+    }
+
+    @Override
     public void log(@NonNull String message) {
         Log.i(TAG, mPackageName + ": " + message);
     }
