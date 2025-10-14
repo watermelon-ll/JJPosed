@@ -282,6 +282,11 @@ public class LSPosedContext implements XposedInterface {
     }
 
     @Override
+    public <T> void invokeOrigin(@NonNull Constructor<T> constructor, @NonNull T thisObject, Object... args) throws InvocationTargetException, IllegalArgumentException, IllegalAccessException {
+        HookBridge.invokeOriginalMethod(constructor, thisObject, args);
+    }
+
+    @Override
     public void log(@NonNull String message) {
         Log.i(TAG, mPackageName + ": " + message);
     }
