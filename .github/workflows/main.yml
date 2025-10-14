@@ -336,7 +336,8 @@ jobs:
           
           # Pre-compile Core module to ensure it works before full build
           echo "=== Pre-compiling Core module ==="
-          ./gradlew :core:compileDebugJavaWithJavac \
+          echo "Attempting compilation with detailed output..."
+          if ! ./gradlew :core:compileDebugJavaWithJavac \
             -Porg.gradle.java.home=$JAVA_HOME \
             -Dorg.gradle.java.installations.auto-download=false \
             -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
@@ -352,7 +353,35 @@ jobs:
             --no-build-cache \
             --no-configuration-cache \
             --no-parallel \
-            --stacktrace || (echo "✗ Core pre-compilation failed" && exit 1)
+            --info \
+            --stacktrace; then
+            
+            echo "=== Core compilation failed, trying with debug output ==="
+            ./gradlew :core:compileDebugJavaWithJavac \
+              -Porg.gradle.java.home=$JAVA_HOME \
+              -Dorg.gradle.java.installations.auto-download=false \
+              -Dorg.gradle.java.installations.fromEnv=JAVA_HOME \
+              -Dorg.gradle.java.toolchain.version=17 \
+              -Dkotlin.jvm.target.validation.mode=warning \
+              -Djava.version=17 \
+              -DtargetCompatibility=17 \
+              -DsourceCompatibility=17 \
+              -Dorg.gradle.parallel=false \
+              -Dorg.gradle.configureondemand=false \
+              -Dorg.gradle.unsafe.isolated-projects=false \
+              -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" \
+              --no-build-cache \
+              --no-configuration-cache \
+              --no-parallel \
+              --debug || true
+              
+            echo "=== Checking for Java compilation errors in build directory ==="
+            find . -name "*.log" -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+            find core/build -name "*.txt" -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || true
+            
+            echo "✗ Core pre-compilation failed"
+            exit 1
+          fi
           echo "✓ Core module pre-compilation successful"
           
           # Use default Gradle user home for main build to access Maven local repo
