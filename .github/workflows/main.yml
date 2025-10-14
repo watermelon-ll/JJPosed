@@ -294,6 +294,11 @@ jobs:
           find core/src/main/java -name "*.java" -exec sed -i '/@AfterInvocation/d' {} \; || true
           find core/src/main/java -name "*.java" -exec sed -i '/@BeforeInvocation/d' {} \; || true
           
+          # Add missing imports to LSPosedContext
+          if ! grep -q "import io.github.libxposed.api.XposedInterface.Hooker" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java; then
+            sed -i '/import io\.github\.libxposed\.api\.XposedInterface;/a\import io.github.libxposed.api.XposedInterface.Hooker;\nimport io.github.libxposed.api.XposedInterface.MethodUnhooker;' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
+          fi
+          
           # Fix annotation references in code
           sed -i 's/method\.getAnnotation(BeforeInvocation\.class)/method.getName().equals("beforeHookedMethod")/g' core/src/main/java/org/lsposed/lspd/impl/LSPosedBridge.java || true
           sed -i 's/method\.getAnnotation(AfterInvocation\.class)/method.getName().equals("afterHookedMethod")/g' core/src/main/java/org/lsposed/lspd/impl/LSPosedBridge.java || true

@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.libxposed.api.XposedInterface;
+import io.github.libxposed.api.XposedInterface.Hooker;
+import io.github.libxposed.api.XposedInterface.MethodUnhooker;
 import io.github.libxposed.api.XposedModule;
 import io.github.libxposed.api.XposedModuleInterface;
 import io.github.libxposed.api.errors.XposedFrameworkError;
