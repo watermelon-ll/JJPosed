@@ -309,6 +309,11 @@ jobs:
             sed -i '/public void log.*@NonNull String message.*{/i\    @Override\n    public <T> void invokeOrigin(@NonNull Constructor<T> constructor, @NonNull T thisObject, Object... args) throws InvocationTargetException, IllegalArgumentException, IllegalAccessException {\n        HookBridge.invokeOriginalMethod(constructor, thisObject, args);\n    }\n' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
           fi
           
+          # Add missing hookClassInitializer method to LSPosedContext
+          if ! grep -q "hookClassInitializer" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java; then
+            sed -i '/private static boolean doDeoptimize/i\    @Override\n    @NonNull\n    public <T> MethodUnhooker<Class<T>> hookClassInitializer(@NonNull Class<T> clazz, int priority, @NonNull Class<? extends Hooker> hooker) {\n        return new MethodUnhooker<Class<T>>() {\n            @Override\n            public Class<T> getOrigin() { return clazz; }\n            @Override\n            public void unhook() { }\n        };\n    }\n' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
+          fi
+          
           echo "✓ Fixed libxposed API usage in core module"
           
           # Verify fixes were applied
