@@ -321,9 +321,12 @@ jobs:
             -DsourceCompatibility=17 \
             -Dorg.gradle.parallel=false \
             -Dorg.gradle.configureondemand=false \
+            -Dorg.gradle.unsafe.isolated-projects=false \
+            -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" \
             --no-build-cache \
             --no-configuration-cache \
-            --no-parallel || (echo "✗ Core pre-compilation failed" && exit 1)
+            --no-parallel \
+            --stacktrace || (echo "✗ Core pre-compilation failed" && exit 1)
           echo "✓ Core module pre-compilation successful"
           
           # Use default Gradle user home for main build to access Maven local repo
@@ -338,10 +341,12 @@ jobs:
             -DsourceCompatibility=17 \
             -Dorg.gradle.parallel=false \
             -Dorg.gradle.configureondemand=false \
+            -Dorg.gradle.unsafe.isolated-projects=false \
+            -Dorg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" \
             --no-build-cache \
             --no-configuration-cache \
             --no-parallel \
-            --info; then
+            --stacktrace; then
             
             echo "=== Build failed, debugging Maven repository ==="
             echo "Checking for libxposed artifacts:"
