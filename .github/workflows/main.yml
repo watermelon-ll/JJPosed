@@ -393,6 +393,19 @@ jobs:
                 echo "Continuing with main build..."
               else
                 echo "✗ LSPosedContext was not compiled"
+                echo "=== Debugging libxposed JAR availability ==="
+                echo "Checking Maven local repository for libxposed JARs:"
+                find ~/.m2/repository/io/github/libxposed -name "*.jar" -exec echo "Found JAR: {}" \; -exec ls -la {} \; 2>/dev/null || echo "No JARs found"
+                
+                echo "Checking if libxposed JARs contain expected classes:"
+                for jar in $(find ~/.m2/repository/io/github/libxposed -name "*.jar" 2>/dev/null); do
+                  echo "=== Contents of $jar ==="
+                  jar tf "$jar" | grep -E "(XposedInterface|Hooker|MethodUnhooker)" | head -5 || echo "No expected classes found"
+                done
+                
+                echo "Checking Core module dependencies in build.gradle.kts:"
+                grep -A 5 -B 5 "libxposed" core/build.gradle.kts || echo "No libxposed dependencies found in core/build.gradle.kts"
+                
                 exit 1
               fi
             else
