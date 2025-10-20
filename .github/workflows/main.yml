@@ -316,16 +316,21 @@ jobs:
           
           # Fix hookClassInitializer method signature and return type in LSPosedContext
           echo "=== Checking and fixing hookClassInitializer method ==="
-          if grep -q "hookClassInitializer" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java; then
-            echo "hookClassInitializer method exists, fixing signature and return type..."
-            
-            # First, remove any existing hookClassInitializer method completely
-            sed -i '/hookClassInitializer/,/^    }/d' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
-            echo "✓ Removed existing hookClassInitializer method"
-          fi
           
-          # Add the correct hookClassInitializer method (without priority parameter)
-          echo "Adding correct hookClassInitializer method..."
+          # Remove any existing hookClassInitializer method completely (more aggressive approach)
+          echo "Removing any existing hookClassInitializer methods..."
+          # Remove lines from hookClassInitializer to the next method or end of class
+          sed -i '/hookClassInitializer/,/^    [a-zA-Z@]/{ /^    [a-zA-Z@]/!d; }' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
+          sed -i '/hookClassInitializer/d' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
+          
+          # Also remove any duplicate annotations that might have been left behind
+          sed -i '/^    @Override$/N; /^    @Override$\n    @Override$/d' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
+          sed -i '/^    @NonNull$/N; /^    @NonNull$\n    @NonNull$/d' core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
+          
+          echo "✓ Cleaned up existing hookClassInitializer method and duplicate annotations"
+          
+          # Add the correct hookClassInitializer method (WITH priority parameter - interface requires it)
+          echo "Adding correct hookClassInitializer method with priority parameter..."
           # Find a good insertion point - try different anchors
           if grep -q "private static boolean doDeoptimize" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java; then
             ANCHOR="private static boolean doDeoptimize"
@@ -338,9 +343,9 @@ jobs:
             ANCHOR="^}$"
           fi
           
-          # Add the method with correct signature (no priority parameter)
-          sed -i "/$ANCHOR/i\\    @Override\\n    @NonNull\\n    public <T> MethodUnhooker<Constructor<T>> hookClassInitializer(@NonNull Class<T> clazz, @NonNull Class<? extends Hooker> hooker) {\\n        return new MethodUnhooker<Constructor<T>>() {\\n            @Override\\n            public Constructor<T> getOrigin() {\\n                try {\\n                    return clazz.getDeclaredConstructor();\\n                } catch (NoSuchMethodException e) {\\n                    throw new RuntimeException(\"No default constructor found for \" + clazz.getName(), e);\\n                }\\n            }\\n            @Override\\n            public void unhook() { }\\n        };\\n    }\\n" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
-          echo "✓ Added correct hookClassInitializer method (without priority parameter)"
+          # Add the method with correct signature (WITH priority parameter as interface requires)
+          sed -i "/$ANCHOR/i\\    @Override\\n    @NonNull\\n    public <T> MethodUnhooker<Constructor<T>> hookClassInitializer(@NonNull Class<T> clazz, int priority, @NonNull Class<? extends Hooker> hooker) {\\n        return new MethodUnhooker<Constructor<T>>() {\\n            @Override\\n            public Constructor<T> getOrigin() {\\n                try {\\n                    return clazz.getDeclaredConstructor();\\n                } catch (NoSuchMethodException e) {\\n                    throw new RuntimeException(\\\"No default constructor found for \\\" + clazz.getName(), e);\\n                }\\n            }\\n            @Override\\n            public void unhook() { }\\n        };\\n    }\\n" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || true
+          echo "✓ Added correct hookClassInitializer method (with priority parameter)"
           
           echo "✓ Fixed libxposed API usage in core module"
           
@@ -363,12 +368,12 @@ jobs:
           grep -n "invokeOrigin.*Constructor" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || echo "⚠️  invokeOrigin method not found"
           grep -n "hookClassInitializer" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || echo "⚠️  hookClassInitializer method not found"
           
-          # Check if the method signature is correct (without priority parameter)
-          if grep -q "hookClassInitializer(@NonNull Class<T> clazz, @NonNull Class<? extends Hooker> hooker)" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java; then
-            echo "✓ hookClassInitializer has correct signature (without priority parameter)"
+          # Check if the method signature is correct (WITH priority parameter as interface requires)
+          if grep -q "hookClassInitializer(@NonNull Class<T> clazz, int priority, @NonNull Class<? extends Hooker> hooker)" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java; then
+            echo "✓ hookClassInitializer has correct signature (with priority parameter)"
           else
             echo "❌ hookClassInitializer has wrong signature"
-            grep -n "hookClassInitializer.*int.*priority" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java && echo "Found method with priority parameter (should be removed)"
+            grep -n "hookClassInitializer" core/src/main/java/org/lsposed/lspd/impl/LSPosedContext.java || echo "Method not found"
           fi
           
           # Check if the return type is correct
